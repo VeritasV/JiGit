@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+
+  "name": "JiGit - Jira issue name to Git branch name",
+  "description": "Give possibility to capture Jira Issue name and transform it in Git branch name",
+  "version": "0.0.0.2",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "tabs",
+    "https://*/browse/*",
+    "https://*/jira/*/*",
+    "clipboardWrite",
+    "storage"
+  ],
+  "browser_action": {
+    "default_title": "Work only with jira issue pages",
+    "default_icon": "icon32-off.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/browse/*", "https://*/jira/*/*"],
+      "js": ["contentscript.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  }
+}
