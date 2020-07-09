@@ -1,5 +1,11 @@
-chrome.browserAction.onClicked.addListener(tab => {
-  chrome.tabs.sendMessage(tab.id, { action: 'get_issue_name' });
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason == "install") {
+    runSettingApp();
+  }
+});
+
+chrome.browserAction.onClicked.addListener((tab) => {
+  chrome.tabs.sendMessage(tab.id, { action: "get_issue_name" });
 });
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
@@ -23,17 +29,21 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 });
 
 function addActiveState(tabId) {
-  chrome.browserAction.setIcon({ tabId, path: 'icon32-on.png' });
+  chrome.browserAction.setIcon({ tabId, path: "icon32-on.png" });
   chrome.browserAction.setTitle({
-    title: 'Click to copy issue name :)',
+    title: "Click to copy issue name :)",
     tabId,
   });
 }
 
 function removeActiveState(tabId) {
-  chrome.browserAction.setIcon({ tabId, path: 'icon32-off.png' });
+  chrome.browserAction.setIcon({ tabId, path: "icon32-off.png" });
   chrome.browserAction.setTitle({
-    title: 'Work only with jira issue pages',
+    title: "Work only with jira issue pages",
     tabId,
   });
+}
+
+function runSettingApp() {
+  chrome.tabs.create({ url: "options.html" });
 }
