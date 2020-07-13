@@ -12,6 +12,10 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg.activeIcon === true) {
     addActiveState(sender.tab.id);
   }
+  if (msg.doneIcon === true) {
+    addDoneState(sender.tab.id);
+    setTimeout(() => addActiveState(sender.tab.id), 2000);
+  }
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -32,6 +36,14 @@ function addActiveState(tabId) {
   chrome.browserAction.setIcon({ tabId, path: "icon32-on.png" });
   chrome.browserAction.setTitle({
     title: "Click to copy issue name :)",
+    tabId,
+  });
+}
+
+function addDoneState(tabId) {
+  chrome.browserAction.setIcon({ tabId, path: "icon32-done.png" });
+  chrome.browserAction.setTitle({
+    title: "Success :)",
     tabId,
   });
 }

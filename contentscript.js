@@ -7,7 +7,7 @@ if (
     /(?=.*(\.atlassian\.net\/jira|jira.*))(?=.*\?selectedIssue\=).*|(.atlassian.net|jira.*)\/browse/g
   )
 ) {
-  setTimeout(() => chrome.runtime.sendMessage({ activeIcon: true }), 1000);
+  setTimeout(() => chrome.runtime.sendMessage({ activeIcon: true }), 500);
 }
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === "get_issue_name") {
@@ -29,18 +29,27 @@ chrome.runtime.onMessage.addListener((message) => {
         const [key, summary, issueType] = await fetchIssueData(url);
         const branchName = await parseIssueResponse(key, summary, issueType);
         copyToClipboard(branchName);
+        chrome.runtime.sendMessage({ doneIcon: true });
       })();
     }
   }
 });
 
-async function parseTilte(issueTitle) {
+function registryGenerator(text, option) {
+  const params = [
+    { registry: "uppercase", command: text.toUpperCase() },
+    { registry: "lowercase", command: text.toLowerCase() },
+  ];
+  const generated = params.find(({ registry }) => registry === option);
+  return generated ? generated.command : text;
+}
+
+async function parseTilte(issueTitle, registry, regexpExclude) {
   // 2 TODO: Better summary parsing, to massive
   if (!issueTitle) return "";
-  const options = await getOptionsFromStorage(["regexpExclude"]);
-  const title = options.regexpExclude
+  const title = regexpExclude
     ? issueTitle.replace(
-        new RegExp(options.regexpExclude.pattern, options.regexpExclude.flag),
+        new RegExp(regexpExclude.pattern, regexpExclude.flag),
         ""
       )
     : issueTitle;
@@ -55,7 +64,7 @@ async function parseTilte(issueTitle) {
   const titleWithoutSpaces = trimedTitle.replace(/[\/ ]/g, "-");
   const trimMoreThatOneSlash = titleWithoutSpaces.replace(/-{2,}/g, "-");
   const trimMoreThatOneDote = trimMoreThatOneSlash.replace(/\.{2,}/g, ".");
-  return trimMoreThatOneDote;
+  return registryGenerator(trimMoreThatOneDote, registry);
 }
 
 function copyToClipboard(textToCopy) {
@@ -79,26 +88,35 @@ function copyToClipboard(textToCopy) {
 
 async function parseIssueResponse(key, summary, issueType) {
   // 3 TODO: move string construct logic to seperate functions
-  const parsedTilte = await parseTilte(summary);
-  const options = await getOptionsFromStorage([
+  const {
+    selectedFlow,
+    registry,
+    copyWithCommand,
+    regexpExclude,
+  } = await getOptionsFromStorage([
     "selectedFlow",
-    "keyRegistry",
+    "registry",
     "copyWithCommand",
+    "regexpExclude",
   ]);
-  const issueKey =
-    options.keyRegistry === "uppercase" ? key : key.toLowerCase();
+  const issueKey = registryGenerator(key, registry.key);
+  if (selectedFlow === "short") return issueKey;
+  const parsedTilte = await parseTilte(summary, registry.name, regexpExclude);
   const branchName = generateBranchName(
     issueKey,
     parsedTilte,
-    options.selectedFlow,
+    selectedFlow,
     issueType
   );
-  return options.copyWithCommand
-    ? `git checkout -b "${branchName}"`
-    : branchName;
+  return commandGenerator(branchName, copyWithCommand);
+}
+
+function commandGenerator(branchName, option) {
+  return option ? `git checkout -b "${branchName}"` : branchName;
 }
 
 function generateBranchName(issueKey, parsedTilte, selectedFlow, issueType) {
+  if (selectedFlow === "short") return issueKey;
   if (selectedFlow === "gitlab") {
     if (issueType === "Bug") {
       return parsedTilte ? `hotfix/${issueKey}-${parsedTilte}` : "";

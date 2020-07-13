@@ -5,37 +5,42 @@ function save_options() {
     pattern: document.getElementById("regexp-exclude-pattern").value,
     flag: document.getElementById("regexp-exclude-flag").value,
   };
-  const keyRegistry = document.getElementById("key-registry").value;
+  const registry = {
+    key: document.getElementById("key-registry").value,
+    name: document.getElementById("name-registry").value,
+  };
   chrome.storage.sync.set(
     {
       selectedFlow,
       copyWithCommand,
       regexpExclude,
-      keyRegistry,
+      registry,
     },
     () => {
-      const status = document.getElementById("status");
-      status.textContent = "Option saved.";
+      const save = document.getElementById("save");
+      save.textContent = "Option saved";
       setTimeout(() => {
-        status.textContent = "";
-      }, 1500);
+        save.textContent = "Save";
+      }, 3500);
     }
   );
 }
 
 function restore_options() {
   chrome.storage.sync.get(
-    ["selectedFlow", "copyWithCommand", "regexpExclude", "keyRegistry"],
+    ["selectedFlow", "copyWithCommand", "regexpExclude", "registry"],
     (options) => {
       document.getElementById("flow").value = options.selectedFlow || "simple";
       document.getElementById("copy-with-command").checked =
         options.copyWithCommand || false;
       document.getElementById("regexp-exclude-pattern").value =
-        options.regexpExclude.pattern || "";
+        (options.regexpExclude && options.regexpExclude.pattern) || "";
       document.getElementById("regexp-exclude-flag").value =
-        options.regexpExclude.flag || "";
+        (options.regexpExclude && options.regexpExclude.flag) || "";
       document.getElementById("key-registry").value =
-        options.keyRegistry || "uppercase";
+        (options.registry && options.registry.key) || "default";
+      document.getElementById("name-registry").value =
+        (options.registry && options.registry.name) || "default";
     }
   );
 }
