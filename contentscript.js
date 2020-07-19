@@ -26,9 +26,16 @@ chrome.runtime.onMessage.addListener((message) => {
     }
     if (url) {
       (async () => {
+        const { copyWithCommand } = await getOptionsFromStorage([
+          "copyWithCommand",
+        ]);
         const [key, summary, issueType] = await fetchIssueData(url);
         const branchName = await parseIssueResponse(key, summary, issueType);
-        copyToClipboard(branchName);
+        const branchNameWithCommand = commandGenerator(
+          branchName,
+          copyWithCommand
+        );
+        copyToClipboard(branchNameWithCommand);
         chrome.runtime.sendMessage({ doneIcon: true });
       })();
     }
@@ -91,24 +98,18 @@ async function parseIssueResponse(key, summary, issueType) {
   const {
     selectedFlow,
     registry,
-    copyWithCommand,
     regexpExclude,
   } = await getOptionsFromStorage([
     "selectedFlow",
     "registry",
-    "copyWithCommand",
     "regexpExclude",
   ]);
   const issueKey = registryGenerator(key, registry.key);
+  let branchName;
   if (selectedFlow === "short") return issueKey;
+  if (selectedFlow === "id") return issueKey.split("-")[1];
   const parsedTilte = await parseTilte(summary, registry.name, regexpExclude);
-  const branchName = generateBranchName(
-    issueKey,
-    parsedTilte,
-    selectedFlow,
-    issueType
-  );
-  return commandGenerator(branchName, copyWithCommand);
+  return generateBranchName(issueKey, parsedTilte, selectedFlow, issueType);
 }
 
 function commandGenerator(branchName, option) {

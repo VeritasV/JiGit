@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "JiGit - Jira issue name to Git branch name",
-  "description": "Capture Jira Issue name and transform it in Git branch name",
-  "version": "0.0.0.5",
+  "name": "JiGit - Jira issue title to branch name",
+  "description": "Сonverts Jira issue title to branch name and puts it on the clipboard",
+  "version": "0.0.0.6",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

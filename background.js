@@ -35,7 +35,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 function addActiveState(tabId) {
   chrome.browserAction.setIcon({ tabId, path: "icon32-on.png" });
   chrome.browserAction.setTitle({
-    title: "Click to copy issue name :)",
+    title:
+      "Click to convert issue title to branch name and puts it on the clipboard",
     tabId,
   });
 }
